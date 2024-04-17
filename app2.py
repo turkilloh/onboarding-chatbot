@@ -81,7 +81,8 @@ if st.session_state.question_index == 0:
         st.session_state.question_index = 1
              
 while recruiter.question_index < len(recruiter.question_titles):
-    user_input = st.text_input("You: ")
+    # Added a unique key to the text_input widget
+    user_input = st.text_input("You: ", key=f"user_input_{recruiter.question_index}")
     if user_input.lower() == "stop":
         break
     response = recruiter.send_message(user_input)
@@ -92,6 +93,7 @@ while recruiter.question_index < len(recruiter.question_titles):
         st.success(response)  # Ask next question
     else:
         st.success("Thank you for your responses!")
+
 
 # After all questions have been asked, the responses dictionary is complete
 print("Here are your responses:")
