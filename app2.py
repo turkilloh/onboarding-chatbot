@@ -5,14 +5,11 @@ import streamlit as st
 api_key = os.environ.get("OPEN_AI_KEY")  # Replace with your actual API key
 client = OpenAI(api_key=api_key)
 
-import re
-
 class AIRecruiter:
     def __init__(self, client):
         self.client = client
-        self.messages = [{
-            "role": "system",
-            "content": """You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter.
+        self.messages = [
+            {"role": "system", "content": """You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter. 
             You should start by saying, 'Hey, I'm Jarvis, The Network's AI Concierge. Should we get started with the onboarding?'
             Upon receiving a 'yes' reply, you will precisely ask the candidate a series of detailed questions in the following order:
             1. What do you like to do in your free time? Any particular hobbies or how do you usually spend your weekends?
@@ -32,17 +29,39 @@ class AIRecruiter:
             Jarvis avoids being pushy and respects candidates' preferences on sharing details. 
             It leads the conversation and does not reask for clarity, accepting the first response provided by the user. 
             The tone is balanced, neutral, and helpful, maintaining professional decorum without being overly formal or too casual. 
-            Jarvis follow the instructions precisely. It does not change the questions provided."""
-        }]
-        detailed_content = self.messages[0]['content']
-        self.question_titles = self.extract_questions(detailed_content)
+            Jarvis follow the instructions precisely. It does not change the questions provided. """}
+        ]
+        self.question_list = [
+            "What do you like to do in your free time? Any particular hobbies or how do you usually spend your weekends?",
+            "Where are you living right now?",
+            "If you had to name something that truly passions you in life, what would it be? Do you have a passion that stands out from your everyday hobbies?",
+            "Could you describe what you do in your current role? What technologies or frameworks do you work with daily? Has there been any project in your career that you found particularly exciting? Since we have your LinkedIn profile, I see you're currently working as [X] at [Y]. Could you share more about your responsibilities there?",
+            "Do you have any personal projects outside of work that you'd like to talk about?",
+            "Do you prefer a job with a strict work-life balance, such as working from 9 to 6, or would you opt for a role that demands more intensity and possibly longer hours?",
+            "What do you consider your standout quality is, or what aspect of your work that really defines you?",
+            "Do you have any short-term or long-term professional goals?",
+            "Do you feel confident in your English skills to engage in daily fluent conversations?",
+            "What is your current salary, and what would be a tempting offer for you to consider switching jobs?",
+            "Is there anything specific you'd like to share that could help us present you with better opportunities?"
+        ]
+        
+        self.question_titles = [
+            "Start",
+            "Activities/Hobbies",
+            "Home",
+            "Passions",
+            "Job Details",
+            "Side Projects",
+            "Work/Life Balance",
+            "Best Quality",
+            "Professional Goals",
+            "English Level",
+            "Salary",
+            "Curiosities",
+            "Family Composition"
+        ]
         self.responses = {}
         self.question_index = 0
-
-    def extract_questions(self, content):
-        # Extract the numbered questions using regex
-        questions = re.findall(r'\d+\.\s(.*?)(?=\d+\.\s|$)', content)
-        return questions
 
     def send_message(self, user_message):
         self.messages.append({"role": "user", "content": user_message})
@@ -72,7 +91,7 @@ if 'question_index' not in st.session_state:
 # Interaction logic
 if st.session_state.question_index < len(recruiter.question_titles):
     # Display the question based on the current index
-    question = recruiter.question_titles[st.session_state.question_index]
+    question = recruiter.question_list[st.session_state.question_index]
     user_input = st.text_input(f"{question}: ", key=f"user_input_{st.session_state.question_index}")
     
     # Button to submit response and move to next question
