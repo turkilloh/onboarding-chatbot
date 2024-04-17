@@ -66,33 +66,39 @@ class AIRecruiter:
 
 recruiter = AIRecruiter(client)
 
-# Streamlit application
+# Streamlit application setup
 st.title("Jarvis: The Network's AI Concierge")
 
 # Initialize session state for handling the index and responses
 if 'question_index' not in st.session_state:
     st.session_state.question_index = 0
     st.session_state.responses = {}
+
+# Interaction logic
+if st.session_state.question_index < len(recruiter.question_titles):
+    # Display the question based on the current index
+    question = recruiter.question_titles[st.session_state.question_index]
+    user_input = st.text_input(f"{question}: ", key=f"user_input_{st.session_state.question_index}")
     
-# Display initial greeting and start interaction
-if st.session_state.question_index == 0:
-    st.write("Hey, I'm Jarvis, The Network's AI Concierge. I'm going to ask a few questions so we can send you curated and personalized opportunities. Shall we get started?")
-    if st.button("Start"):
-        st.session_state.question_index = 1
-             
-while recruiter.question_index < len(recruiter.question_titles):
-    # Added a unique key to the text_input widget
-    user_input = st.text_input("You: ", key=f"user_input_{recruiter.question_index}")
-    if user_input.lower() == "stop":
-        break
-    response = recruiter.send_message(user_input)
-    # Store the response corresponding to the current question
-    recruiter.responses[recruiter.question_titles[recruiter.question_index]] = user_input
-    recruiter.question_index += 1
-    if recruiter.question_index < len(recruiter.question_titles):
-        st.success(response)  # Ask next question
-    else:
-        st.success("Thank you for your responses!")
+    # Button to submit response and move to next question
+    if st.button('Next', key=f"next_{st.session_state.question_index}"):
+        if user_input:  # Ensure there is input before processing
+            response = recruiter.send_message(user_input)
+            # Store the response corresponding to the current question
+            st.session_state.responses[question] = user_input
+            st.session_state.question_index += 1
+            
+            # Display the AI's response if not the end of the conversation
+            if st.session_state.question_index < len(recruiter.question_titles):
+                st.success(response)
+            else:
+                st.success("Thank you for your responses!")
+                # Optionally print all responses after the conversation ends
+                st.write("Here are your responses:")
+                for question, answer in st.session_state.responses.items():
+                    st.write(f"{question}: {answer}")
+        else:
+            st.error("Please enter a response to proceed.")
 
 
 # After all questions have been asked, the responses dictionary is complete
