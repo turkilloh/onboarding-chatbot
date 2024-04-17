@@ -79,29 +79,9 @@ if st.session_state.question_index == 0:
     st.write("Hey, I'm Jarvis, The Network's AI Concierge. I'm going to ask a few questions so we can send you curated and personalized opportunities. Shall we get started?")
     if st.button("Start"):
         st.session_state.question_index = 1
-   
-# Text input for user response
-if st.session_state.question_index < len(recruiter.question_titles):
-    user_input = st.text_input("You:", key=f"user_input_{st.session_state.question_index}")
-
-    # Button to submit response
-    if st.button('Submit', key=f"submit_{st.session_state.question_index}"):
-        response = recruiter.send_message(user_input)
-        # Store the response corresponding to the current question
-        recruiter.responses[recruiter.question_titles[st.session_state.question_index]] = user_input
-        st.session_state.question_index += 1
-        if st.session_state.question_index < len(recruiter.question_titles):
-            st.write(response)  # Display the response and ask the next question
-        else:
-            st.success("Thank you for your responses!")
-
-    # Additional button to end the session early
-    if st.button("I'm Done", key=f"done_{st.session_state.question_index}"):
-        st.session_state.question_index = len(recruiter.question_titles)  # Force end
-        st.success("Session ended early by the user. Thank you!")
              
-'''while recruiter.question_index < len(recruiter.question_titles):
-    user_input = input("You: ")
+while recruiter.question_index < len(recruiter.question_titles):
+    user_input = st.text_input("You: ")
     if user_input.lower() == "stop":
         break
     response = recruiter.send_message(user_input)
@@ -109,9 +89,9 @@ if st.session_state.question_index < len(recruiter.question_titles):
     recruiter.responses[recruiter.question_titles[recruiter.question_index]] = user_input
     recruiter.question_index += 1
     if recruiter.question_index < len(recruiter.question_titles):
-        print(response)  # Ask next question
+        st.success(response)  # Ask next question
     else:
-        print("Thank you for your responses!")'''
+        st.success("Thank you for your responses!")
 
 # After all questions have been asked, the responses dictionary is complete
 print("Here are your responses:")
