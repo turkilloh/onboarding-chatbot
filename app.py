@@ -61,7 +61,7 @@ if st.session_state.question_index == 0:
 if 1 <= st.session_state.question_index < len(recruiter.question_titles) + 1:
     question = recruiter.question_titles[st.session_state.question_index - 1]
     user_input = st.text_input("Please answer the question below:", key=str(st.session_state.question_index))
-    if st.button("Submit Response", key=str(st.session_state.question_index)):
+    if st.button(f"Submit Response {st.session_state.question_index}", key=f"submit_{st.session_state.question_index}"):
         if user_input:  # Ensure non-empty response
             recruiter.responses[question] = user_input
             response = recruiter.send_message(user_input)
