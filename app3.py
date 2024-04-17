@@ -9,25 +9,18 @@ class AIRecruiter:
     def __init__(self, client):
         self.client = client
         self.messages = [
-            {"role": "system", "content": """You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter.
-             Jarvis listens actively to responses, providing related follow-ups to ensure the candidate feels heard. 
-            Jarvis must not give long related follow-up responses, it should ensure candidate feels heard but trying to give a more natural response.
-            It emphasizes that the information collected is for curating high-quality, personalized job opportunities, with a guarantee of privacy and non-spammy communication. 
-            Jarvis avoids being pushy and respects candidates' preferences on sharing details. 
-            It leads the conversation and does not reask for clarity, accepting the first response provided by the user. 
-            The tone is balanced, neutral, and helpful, maintaining professional decorum without being overly formal or too casual. 
-            Jarvis follow the instructions precisely. It does not change the questions provided."""}
+            {"role": "system", "content": "You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter."}
         ]
         self.question_titles = [
             "What do you like to do in your free time? Any particular hobbies or how do you usually spend your weekends?",
             "Where are you living right now?",
-            "If you had to name something that truly passions you in life, what would it be? Do you have a passion that stands out from your everyday hobbies?",
-            "Could you describe what you do in your current role? What technologies or frameworks do you work with daily?",
+            "If you had to name something that truly passions you in life, what would it be?",
+            "Could you describe what you do in your current role?",
             "Do you have any personal projects outside of work that you'd like to talk about?",
-            "Do you prefer a job with a strict work-life balance, or would you opt for a role that demands more intensity and possibly longer hours?",
-            "What do you consider your standout quality is, or what aspect of your work that really defines you?",
+            "Do you prefer a job with a strict work-life balance, or would you opt for a role that demands more intensity?",
+            "What do you consider your standout quality?",
             "Do you have any short-term or long-term professional goals?",
-            "Do you feel confident in your English skills to engage in daily fluent conversations?",
+            "Do you feel confident in your English skills?",
             "What is your current salary, and what would be a tempting offer for you to consider switching jobs?",
             "Is there anything specific you'd like to share that could help us present you with better opportunities?"
         ]
@@ -75,10 +68,12 @@ if st.session_state.initiated and st.session_state.question_index < len(recruite
         if user_input:  # Check for user input before proceeding
             response = recruiter.send_message(user_input)
             st.session_state.responses[question] = user_input
+            st.session_state['response_submitted'] = True
             st.success(response)
 
-    if st.button('Next Question', key=f"next_{st.session_state.question_index}"):
+    if st.button('Next Question', key=f"next_{st.session_state.question_index}") or 'response_submitted' in st.session_state:
         st.session_state.question_index += 1  # Increment to move to the next question
+        st.session_state.pop('response_submitted', None)  # Clear the flag after moving to the next question
 
 # End of all questions
 if st.session_state.question_index >= len(recruiter.question_titles):
@@ -86,4 +81,3 @@ if st.session_state.question_index >= len(recruiter.question_titles):
     st.write("Here are your responses:")
     for q, a in st.session_state.responses.items():
         st.write(f"{q}: {a}")
-
