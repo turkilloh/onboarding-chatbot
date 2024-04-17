@@ -9,9 +9,11 @@ class AIRecruiter:
     def __init__(self, client):
         self.client = client
         self.messages = [
-            {"role": "system", "content": """Jarvis listens actively to responses, providing related follow-ups to ensure the candidate feels heard. 
-            Jarvis must not give long related follow-up responses, it should ensure candidate feels heard but trying to give a more natural response.
-            It emphasizes that the information collected is for curating high-quality, personalized job opportunities, with a guarantee of privacy and non-spammy communication. 
+            {"role": "system", "content": """You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter.
+            Jarvis listens actively to responses, providing related follow-ups to ensure the candidate feels heard but Jarvis must give short related follow-up responses, 
+            and do not try to always relate his responeses to job related subjects. 
+            It should ensure candidate feels heard but trying to give a more natural response as short as possible.
+            It emphasizes that the information collected is for curating high-quality personalized recomendations, with a guarantee of privacy and non-spammy communication. 
             Jarvis avoids being pushy and respects candidates' preferences on sharing details. 
             It leads the conversation and does not reask for clarity, accepting the first response provided by the user. 
             The tone is balanced, neutral, and helpful, maintaining professional decorum without being overly formal or too casual. 
@@ -56,7 +58,6 @@ if 'initiated' not in st.session_state:
     st.session_state.initiated = False
     st.session_state.question_index = 0
     st.session_state.responses = {}
-    st.session_state.last_response = None  # To store Jarvis's last response
 
 # Display the initial greeting and wait for user to start
 if not st.session_state.initiated:
@@ -68,9 +69,6 @@ if not st.session_state.initiated:
 
 # Handle the detailed questions and responses
 if st.session_state.initiated and st.session_state.question_index < len(recruiter.question_titles):
-    if st.session_state.last_response:
-        st.success(st.session_state.last_response)  # Display the response from the last interaction
-
     question = recruiter.question_titles[st.session_state.question_index]
     user_input = st.text_input(f"{question}", key=f"user_input_{st.session_state.question_index}")
 
@@ -78,13 +76,15 @@ if st.session_state.initiated and st.session_state.question_index < len(recruite
         if user_input:  # Check for user input before proceeding
             response = recruiter.send_message(user_input)
             st.session_state.responses[question] = user_input
-            st.session_state.last_response = response  # Store response to display on the next question
-            st.session_state.question_index += 1  # Move to the next question immediately after submitting
+            st.session_state['response_submitted'] = True
+            st.success(response)
 
-# Check if all questions have been processed
+    if st.button('Next Question', key=f"next_{st.session_state.question_index}") or 'response_submitted' in st.session_state:
+        st.session_state.question_index += 1  # Increment to move to the next question
+        st.session_state.pop('response_submitted', None)  # Clear the flag after moving to the next question
+
+# End of all questions
 if st.session_state.question_index >= len(recruiter.question_titles):
-    if st.session_state.last_response:
-        st.success(st.session_state.last_response)  # Display the last response if it hasn't been shown yet
     st.success("Thank you for your responses!")
     st.write("Here are your responses:")
     for q, a in st.session_state.responses.items():
