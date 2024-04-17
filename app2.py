@@ -5,11 +5,14 @@ import streamlit as st
 api_key = os.environ.get("OPEN_AI_KEY")  # Replace with your actual API key
 client = OpenAI(api_key=api_key)
 
+import re
+
 class AIRecruiter:
     def __init__(self, client):
         self.client = client
-        self.messages = [
-            {"role": "system", "content": """You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter. 
+        self.messages = [{
+            "role": "system",
+            "content": """You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter.
             You should start by saying, 'Hey, I'm Jarvis, The Network's AI Concierge. Should we get started with the onboarding?'
             Upon receiving a 'yes' reply, you will precisely ask the candidate a series of detailed questions in the following order:
             1. What do you like to do in your free time? Any particular hobbies or how do you usually spend your weekends?
@@ -29,25 +32,17 @@ class AIRecruiter:
             Jarvis avoids being pushy and respects candidates' preferences on sharing details. 
             It leads the conversation and does not reask for clarity, accepting the first response provided by the user. 
             The tone is balanced, neutral, and helpful, maintaining professional decorum without being overly formal or too casual. 
-            Jarvis follow the instructions precisely. It does not change the questions provided. """}
-        ]
-        self.question_titles = [
-            "Start",
-            "Activities/Hobbies",
-            "Home",
-            "Passions",
-            "Job Details",
-            "Side Projects",
-            "Work/Life Balance",
-            "Best Quality",
-            "Professional Goals",
-            "English Level",
-            "Salary",
-            "Curiosities",
-            "Family Composition"
-        ]
+            Jarvis follow the instructions precisely. It does not change the questions provided."""
+        }]
+        detailed_content = self.messages[0]['content']
+        self.question_titles = self.extract_questions(detailed_content)
         self.responses = {}
         self.question_index = 0
+
+    def extract_questions(self, content):
+        # Extract the numbered questions using regex
+        questions = re.findall(r'\d+\.\s(.*?)(?=\d+\.\s|$)', content)
+        return questions
 
     def send_message(self, user_message):
         self.messages.append({"role": "user", "content": user_message})
