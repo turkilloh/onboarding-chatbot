@@ -1,7 +1,8 @@
 from openai import OpenAI
 import os
+import streamlit as st
 
-
+st.title("Jarvis")
 api_key = os.environ.get("OPEN_AI_KEY")  # Replace with your actual API key
 client = OpenAI(api_key=api_key)
 
