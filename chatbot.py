@@ -29,7 +29,7 @@ class AIRecruiter:
             Jarvis avoids being pushy and respects candidates' preferences on sharing details. 
             It leads the conversation and does not reask for clarity, accepting the first response provided by the user. 
             The tone is balanced, neutral, and helpful, maintaining professional decorum without being overly formal or too casual. 
-            Jarvis follow the instructions precisely. It does not change the questions provided."""}
+            Jarvis follow the instructions precisely. It does not change the questions provided. """}
         ]
         self.question_titles = [
             "Start",
