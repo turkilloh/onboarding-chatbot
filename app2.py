@@ -9,51 +9,27 @@ class AIRecruiter:
     def __init__(self, client):
         self.client = client
         self.messages = [
-            {"role": "system", "content": """You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter. 
-            You should start by saying, 'Hey, I'm Jarvis, The Network's AI Concierge. Should we get started with the onboarding?'
-            Upon receiving a 'yes' reply, you will precisely ask the candidate a series of detailed questions in the following order:
-            1. What do you like to do in your free time? Any particular hobbies or how do you usually spend your weekends?
-            2. Where are you living right now?
-            3. If you had to name something that truly passions you in life, what would it be? Do you have a passion that stands out from your everyday hobbies?
-            4. Could you describe what you do in your current role? What technologies or frameworks do you work with daily? Has there been any project in your career that you found particularly exciting? Since we have your LinkedIn profile, I see you're currently working as [X] at [Y]. Could you share more about your responsibilities there?
-            5. Do you have any personal projects outside of work that you'd like to talk about?
-            6. Do you prefer a job with a strict work-life balance, such as working from 9 to 6, or would you opt for a role that demands more intensity and possibly longer hours?
-            7. What do you consider your standout quality is, or what aspect of your work that really defines you?
-            8. Do you have any short-term or long-term professional goals?
-            9. Do you feel confident in your English skills to engage in daily fluent conversations?
-            10. What is your current salary, and what would be a tempting offer for you to consider switching jobs?
-            11. Is there anything specific you'd like to share that could help us present you with better opportunities?
-            Jarvis listens actively to responses, providing related follow-ups to ensure the candidate feels heard. 
-            Jarvis must not give long related follow-up responses, it should ensure candidate feels heard but trying to give a more natural response.
-            It emphasizes that the information collected is for curating high-quality, personalized job opportunities, with a guarantee of privacy and non-spammy communication. 
-            Jarvis avoids being pushy and respects candidates' preferences on sharing details. 
-            It leads the conversation and does not reask for clarity, accepting the first response provided by the user. 
-            The tone is balanced, neutral, and helpful, maintaining professional decorum without being overly formal or too casual. 
-            Jarvis follow the instructions precisely. It does not change the questions provided. """}
+            {"role": "system", "content": "You are Jarvis, the Recruiter is designed to act as a proactive and friendly recruiter."}
         ]
-        
         self.question_titles = [
-            "Activities/Hobbies",
-            "Home",
-            "Passions",
-            "Job Details",
-            "Side Projects",
-            "Work/Life Balance",
-            "Best Quality",
-            "Professional Goals",
-            "English Level",
-            "Salary",
-            "Curiosities",
-            "Family Composition"
+            "What do you like to do in your free time? Any particular hobbies or how do you usually spend your weekends?",
+            "Where are you living right now?",
+            "If you had to name something that truly passions you in life, what would it be? Do you have a passion that stands out from your everyday hobbies?",
+            "Could you describe what you do in your current role? What technologies or frameworks do you work with daily?",
+            "Do you have any personal projects outside of work that you'd like to talk about?",
+            "Do you prefer a job with a strict work-life balance, or would you opt for a role that demands more intensity and possibly longer hours?",
+            "What do you consider your standout quality is, or what aspect of your work that really defines you?",
+            "Do you have any short-term or long-term professional goals?",
+            "Do you feel confident in your English skills to engage in daily fluent conversations?",
+            "What is your current salary, and what would be a tempting offer for you to consider switching jobs?",
+            "Is there anything specific you'd like to share that could help us present you with better opportunities?"
         ]
         self.responses = {}
         self.question_index = 0
 
     def send_message(self, user_message):
         self.messages.append({"role": "user", "content": user_message})
-        
         response = self.generate_response()
-        
         self.messages.append({"role": "system", "content": response})
         return response
 
@@ -70,55 +46,37 @@ recruiter = AIRecruiter(client)
 st.title("Jarvis: The Network's AI Concierge")
 
 # Initialize session state for handling the index and responses
-if 'question_index' not in st.session_state:
+if 'initiated' not in st.session_state:
+    st.session_state.initiated = False
     st.session_state.question_index = 0
     st.session_state.responses = {}
 
-# Interaction logic
-if st.session_state.question_index < len(recruiter.question_titles):
-    # Display the question based on the current index
+# Display the initial greeting and wait for user to start
+if not st.session_state.initiated:
+    st.write("Hey, I'm Jarvis, The Network's AI Concierge. Should we get started with the onboarding?")
+    if st.button("Yes, let's start"):
+        st.session_state.initiated = True
+    elif st.button("No, thank you"):
+        st.stop()
+
+# Handle the detailed questions and responses
+if st.session_state.initiated and st.session_state.question_index < len(recruiter.question_titles):
     question = recruiter.question_titles[st.session_state.question_index]
-    user_input = st.text_input(f"{question}: ", key=f"user_input_{st.session_state.question_index}")
-    
-    # Submit Button to save the response and process it without moving to the next question
+    user_input = st.text_input(f"{question}", key=f"user_input_{st.session_state.question_index}")
+
     if st.button('Submit Answer', key=f"submit_{st.session_state.question_index}"):
-        if user_input:  # Ensure there is input before processing
+        if user_input:  # Check for user input before proceeding
             response = recruiter.send_message(user_input)
-            # Store the response corresponding to the current question
             st.session_state.responses[question] = user_input
-            st.session_state['last_response'] = response
             st.success(response)
-        else:
-            st.error("Please enter a response to proceed.")
 
-    # Next Button to move to the next question, only enabled after submitting the answer
-    if 'last_response' in st.session_state:
-        if st.button('Next Question', key=f"next_{st.session_state.question_index}"):
-            st.session_state.question_index += 1
-            # Clear last response to ensure the next button can't be pressed without a new submission
-            del st.session_state['last_response']
+    if st.button('Next Question', key=f"next_{st.session_state.question_index}"):
+        st.session_state.question_index += 1  # Increment to move to the next question
 
-            if st.session_state.question_index >= len(recruiter.question_titles):
-                st.success("Thank you for your responses!")
-                # Optionally print all responses after the conversation ends
-                st.write("Here are your responses:")
-                for question, answer in st.session_state.responses.items():
-                    st.write(f"{question}: {answer}")
-
-# Display end of questions outside the if conditions to handle the case when all questions are answered
-if st.session_state.question_index >= len(recruiter.question_titles) and 'final_message' not in st.session_state:
+# End of all questions
+if st.session_state.question_index >= len(recruiter.question_titles):
     st.success("Thank you for your responses!")
     st.write("Here are your responses:")
-    for question, answer in st.session_state.responses.items():
-        st.write(f"{question}: {answer}")
-    st.session_state['final_message'] = True  # Prevent repeated message display
-
-
-# After all questions have been asked, the responses dictionary is complete
-print("Here are your responses:")
-#print(recruiter.responses.items())
-for question, answer in recruiter.responses.items():
-   print(f"{question}: {answer}")
-
-    
+    for q, a in st.session_state.responses.items():
+        st.write(f"{q}: {a}")
 
