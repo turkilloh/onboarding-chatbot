@@ -31,22 +31,8 @@ class AIRecruiter:
             The tone is balanced, neutral, and helpful, maintaining professional decorum without being overly formal or too casual. 
             Jarvis follow the instructions precisely. It does not change the questions provided. """}
         ]
-        self.question_list = [
-            "What do you like to do in your free time? Any particular hobbies or how do you usually spend your weekends?",
-            "Where are you living right now?",
-            "If you had to name something that truly passions you in life, what would it be? Do you have a passion that stands out from your everyday hobbies?",
-            "Could you describe what you do in your current role? What technologies or frameworks do you work with daily? Has there been any project in your career that you found particularly exciting? Since we have your LinkedIn profile, I see you're currently working as [X] at [Y]. Could you share more about your responsibilities there?",
-            "Do you have any personal projects outside of work that you'd like to talk about?",
-            "Do you prefer a job with a strict work-life balance, such as working from 9 to 6, or would you opt for a role that demands more intensity and possibly longer hours?",
-            "What do you consider your standout quality is, or what aspect of your work that really defines you?",
-            "Do you have any short-term or long-term professional goals?",
-            "Do you feel confident in your English skills to engage in daily fluent conversations?",
-            "What is your current salary, and what would be a tempting offer for you to consider switching jobs?",
-            "Is there anything specific you'd like to share that could help us present you with better opportunities?"
-        ]
         
         self.question_titles = [
-            "Start",
             "Activities/Hobbies",
             "Home",
             "Passions",
@@ -91,28 +77,41 @@ if 'question_index' not in st.session_state:
 # Interaction logic
 if st.session_state.question_index < len(recruiter.question_titles):
     # Display the question based on the current index
-    question = recruiter.question_list[st.session_state.question_index]
+    question = recruiter.question_titles[st.session_state.question_index]
     user_input = st.text_input(f"{question}: ", key=f"user_input_{st.session_state.question_index}")
     
-    # Button to submit response and move to next question
-    if st.button('Next', key=f"next_{st.session_state.question_index}"):
+    # Submit Button to save the response and process it without moving to the next question
+    if st.button('Submit Answer', key=f"submit_{st.session_state.question_index}"):
         if user_input:  # Ensure there is input before processing
             response = recruiter.send_message(user_input)
             # Store the response corresponding to the current question
             st.session_state.responses[question] = user_input
+            st.session_state['last_response'] = response
+            st.success(response)
+        else:
+            st.error("Please enter a response to proceed.")
+
+    # Next Button to move to the next question, only enabled after submitting the answer
+    if 'last_response' in st.session_state:
+        if st.button('Next Question', key=f"next_{st.session_state.question_index}"):
             st.session_state.question_index += 1
-            
-            # Display the AI's response if not the end of the conversation
-            if st.session_state.question_index < len(recruiter.question_titles):
-                st.success(response)
-            else:
+            # Clear last response to ensure the next button can't be pressed without a new submission
+            del st.session_state['last_response']
+
+            if st.session_state.question_index >= len(recruiter.question_titles):
                 st.success("Thank you for your responses!")
                 # Optionally print all responses after the conversation ends
                 st.write("Here are your responses:")
                 for question, answer in st.session_state.responses.items():
                     st.write(f"{question}: {answer}")
-        else:
-            st.error("Please enter a response to proceed.")
+
+# Display end of questions outside the if conditions to handle the case when all questions are answered
+if st.session_state.question_index >= len(recruiter.question_titles) and 'final_message' not in st.session_state:
+    st.success("Thank you for your responses!")
+    st.write("Here are your responses:")
+    for question, answer in st.session_state.responses.items():
+        st.write(f"{question}: {answer}")
+    st.session_state['final_message'] = True  # Prevent repeated message display
 
 
 # After all questions have been asked, the responses dictionary is complete
